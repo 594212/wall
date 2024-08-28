@@ -22,9 +22,9 @@ diesel::table! {
         id -> Int4,
         name -> Varchar,
         description -> Nullable<Varchar>,
-        c_type -> Nullable<CategoryType>,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        category_type -> CategoryType,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -32,8 +32,8 @@ diesel::table! {
     categories_serials (category_id, serial_id) {
         category_id -> Int4,
         serial_id -> Int4,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -45,9 +45,9 @@ diesel::table! {
         id -> Int4,
         text -> Nullable<Text>,
         model_id -> Int4,
-        model_type -> Nullable<CommentType>,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        model_type -> CommentType,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -57,8 +57,8 @@ diesel::table! {
         number -> Int4,
         name -> Nullable<Varchar>,
         serial_id -> Int4,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -66,8 +66,8 @@ diesel::table! {
     likes (user_id, episode_id) {
         user_id -> Int4,
         episode_id -> Int4,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -77,25 +77,25 @@ diesel::table! {
 
     medias (id) {
         id -> Int4,
-        uuid -> Nullable<Uuid>,
+        uuid -> Uuid,
         model_id -> Int8,
-        model_type -> Nullable<ModelType>,
+        model_type -> ModelType,
         file_name -> Varchar,
         mime_type -> Varchar,
         conversion -> Text,
         size -> Int8,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
 diesel::table! {
     ratings (user_id, serial_id) {
-        number -> Nullable<Int2>,
+        number -> Int2,
         user_id -> Int4,
         serial_id -> Int4,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -104,10 +104,10 @@ diesel::table! {
         id -> Int4,
         title -> Varchar,
         description -> Text,
-        serial_count -> Nullable<Int4>,
-        rating -> Nullable<Float4>,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        serial_count -> Int4,
+        rating -> Float4,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -115,8 +115,8 @@ diesel::table! {
     users (id) {
         id -> Int4,
         login -> Varchar,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -124,8 +124,8 @@ diesel::table! {
     views (user_id, episode_id) {
         user_id -> Int4,
         episode_id -> Int4,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
