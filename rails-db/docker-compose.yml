@@ -1,0 +1,17 @@
+services:
+  pgsql:
+    image: 'postgres:15'
+    ports:
+        - 5432:5432
+    environment:
+        PGPASSWORD: '${DB_PASSWORD}'
+        PGDATABASE: '${DB_DATABASE}'
+        PGUSER: '${DB_USERNAME}'
+        POSTGRES_PASSWORD: '${DB_PASSWORD}'
+        POSTGRES_DATABASE: '${DB_DATABASE}'
+        POSTGRES_USER: '${DB_USERNAME}'
+    volumes:
+        - dbdata:/var/lib/postgresql/data
+volumes:
+    dbdata:
+        driver: local

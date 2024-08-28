@@ -1,4 +1,5 @@
 use std::io::Write;
+use chrono::NaiveDateTime;
 use diesel::{AsExpression, FromSqlRow, Identifiable, Queryable, Selectable, SqlType};
 use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
@@ -16,6 +17,8 @@ pub struct Media {
     mime_type: String,
     conversion: String,
     size: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
 #[diesel(sql_type=(name = MediaType))]

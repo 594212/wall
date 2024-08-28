@@ -1,4 +1,5 @@
 use std::io::Write;
+use chrono::NaiveDateTime;
 use diesel::{AsExpression, FromSqlRow, Identifiable, Insertable, SqlType};
 use diesel::deserialize::FromSql;
 use diesel::pg::Pg;
@@ -10,6 +11,8 @@ pub struct Comment {
     text: String,
     model_id: i32,
     model_type: CommentTypeEnum,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]

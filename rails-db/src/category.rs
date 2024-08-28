@@ -1,4 +1,5 @@
 use std::io::Write;
+use chrono::NaiveDateTime;
 use diesel::{AsExpression, Associations, FromSqlRow, Identifiable, Queryable, Selectable, SqlType};
 use diesel::deserialize::FromSql;
 use diesel::pg::Pg;
@@ -12,6 +13,8 @@ pub struct Category {
     pub name: String,
     pub description: String,
     pub c_type: CategoryType,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug)]

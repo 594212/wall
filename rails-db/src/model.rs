@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::Serialize;
 use crate::schema::serials::description;
@@ -10,6 +11,8 @@ pub struct Serial {
     pub description: String,
     pub serial_count: i32,
     pub rating: f32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Insertable)]
@@ -26,6 +29,8 @@ pub struct Episode {
     pub name: Option<String>,
     pub number: i32,
     pub serial_id: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug)]
@@ -33,6 +38,8 @@ pub struct Episode {
 pub struct User {
     id: i32,
     login: String,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug)]
@@ -43,6 +50,8 @@ pub struct User {
 pub struct View {
     pub user_id: i32,
     pub episode_id: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug)]
@@ -53,6 +62,8 @@ pub struct View {
 pub struct Like {
     pub user_id: i32,
     pub episode_id: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Identifiable, Selectable, Queryable, Associations, Debug)]
@@ -64,4 +75,6 @@ pub struct Rating {
     pub number: i32,
     pub user_id: i32,
     pub serial_id: i32,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
