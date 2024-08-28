@@ -90,17 +90,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    posts (id) {
-        id -> Int4,
-        title -> Varchar,
-        body -> Text,
-        published -> Bool,
-        created_at -> Nullable<Timestamp>,
-        updated_at -> Nullable<Timestamp>,
-    }
-}
-
-diesel::table! {
     ratings (user_id, serial_id) {
         number -> Nullable<Int2>,
         user_id -> Int4,
@@ -157,7 +146,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     episodes,
     likes,
     medias,
-    posts,
     ratings,
     serials,
     users,

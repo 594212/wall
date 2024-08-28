@@ -5,9 +5,12 @@ use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::sql_types::Uuid;
+use crate::schema::sql_types::ModelType;
+use crate::schema::medias;
 
 #[derive(Queryable, Selectable, Identifiable, Debug)]
 #[diesel(table_name = medias)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Media {
     pub id: i32,
     uuid: Uuid,
@@ -21,18 +24,13 @@ pub struct Media {
     updated_at: NaiveDateTime,
 }
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
-#[diesel(sql_type=(name = MediaType))]
+#[diesel(sql_type=(name = ModelType))]
 pub enum MediaTypeEnum {
     Serial,
     Episode,
     Comment,
 }
-
-#[derive(SqlType)]
-#[diesel(postgres_type(name = "media_type"))]
-pub struct MediaType;
-
-impl FromSql<MediaType, Pg> for MediaTypeEnum {
+impl FromSql<ModelType, Pg> for MediaTypeEnum {
     fn from_sql(bytes: PgValue<'_>) -> diesel::deserialize::Result<Self> {
         match bytes.as_bytes() {
             b"serial" => Ok(MediaTypeEnum::Serial),
@@ -43,7 +41,7 @@ impl FromSql<MediaType, Pg> for MediaTypeEnum {
     }
 }
 
-impl ToSql<MediaType, Pg> for MediaTypeEnum {
+impl ToSql<ModelType, Pg> for MediaTypeEnum {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> diesel::serialize::Result {
         match *self {
             MediaTypeEnum::Serial => out.write_all(b"serial")?,
