@@ -3,14 +3,19 @@ use diesel::{AsExpression, FromSqlRow, Identifiable, Queryable, Selectable, SqlT
 use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{IsNull, Output, ToSql};
+use diesel::sql_types::Uuid;
 
-#[derive(Queryable, Selectable, Identifiable, Debug, PartialEq)]
+#[derive(Queryable, Selectable, Identifiable, Debug)]
 #[diesel(table_name = medias)]
 pub struct Media {
     pub id: i32,
-    pub path: String,
-    pub model_id: i32,
-    pub model_type: MediaTypeEnum,
+    uuid: Uuid,
+    model_id: i64,
+    model_type: MediaTypeEnum,
+    file_name: String,
+    mime_type: String,
+    conversion: String,
+    size: i32,
 }
 #[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
 #[diesel(sql_type=(name = MediaType))]
@@ -45,3 +50,4 @@ impl ToSql<MediaType, Pg> for MediaTypeEnum {
         Ok(IsNull::No)
     }
 }
+

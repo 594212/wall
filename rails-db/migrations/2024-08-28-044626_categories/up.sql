@@ -5,5 +5,7 @@ CREATE TABLE categories(
     id SERIAL PRIMARY KEY,
     name VARCHAR NOT NULL,
     description VARCHAR,
-    c_type CATEGORY_TYPE
+    c_type CATEGORY_TYPE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

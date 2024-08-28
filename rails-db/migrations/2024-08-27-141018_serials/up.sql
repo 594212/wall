@@ -1,5 +1,9 @@
 CREATE TABLE serials (
     id SERIAL PRIMARY KEY,
     title VARCHAR NOT NULL,
-    description TEXT NOT NULL
+    description TEXT NOT NULL,
+    serial_count INTEGER DEFAULT 0,
+    rating REAL DEFAULT 4,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

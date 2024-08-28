@@ -1,8 +1,9 @@
 -- Your SQL goes here
 CREATE TABLE ratings (
-    id SERIAL PRIMARY KEY,
     number SMALLINT CHECK (number BETWEEN 0 AND 5),
-    user_id INTEGER NOT NULL REFERENCES users(id),
-    serial_id INTEGER NOT NULL REFERENCES serials(id),
-    avrg FLOAT4 CHECK (avrg BETWEEN 0 AND 5)
+    user_id INTEGER REFERENCES users(id),
+    serial_id INTEGER REFERENCES serials(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(user_id, serial_id)
 )

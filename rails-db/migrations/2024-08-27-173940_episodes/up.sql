@@ -2,5 +2,7 @@ CREATE TABLE episodes (
     id SERIAL PRIMARY KEY,
     number INT NOT NULL,
     name VARCHAR,
-    serial_id INTEGER NOT NULL REFERENCES serials(id)
+    serial_id INTEGER NOT NULL REFERENCES serials(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

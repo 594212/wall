@@ -8,6 +8,15 @@ pub struct Serial {
     pub id: i32,
     pub name: String,
     pub description: String,
+    pub serial_count: i32,
+    pub rating: f32,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = books)]
+pub struct NewSerial<'a> {
+    pub name: &'a str,
+    pub description: &'a str,
 }
 #[derive(Queryable, Selectable, Identifiable, Associations, Debug, PartialEq)]
 #[diesel(belong_to(Serial))]
@@ -50,10 +59,9 @@ pub struct Like {
 #[diesel(belongs_to(User))]
 #[disel(belongs_to(Serial))]
 #[diesel(table_name = ratings)]
+#[diesel(primary_key(user_id, serial_id))]
 pub struct Rating {
-    pub id: i32,
     pub number: i32,
     pub user_id: i32,
     pub serial_id: i32,
-    pub avrg: f32,
 }

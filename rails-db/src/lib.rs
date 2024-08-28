@@ -1,9 +1,9 @@
 pub mod models;
 pub mod schema;
-mod model;
-mod media;
-mod category;
-mod comment;
+pub mod model;
+pub mod media;
+pub mod category;
+pub mod comment;
 
 use std::env;
 
