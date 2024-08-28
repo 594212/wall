@@ -1,19 +1,13 @@
 pub mod schema;
-pub mod model;
-pub mod media;
-pub mod category;
-pub mod comment;
+pub mod models;
 mod repository;
-pub mod evaluations;
-pub mod user;
 
 use std::env;
 
 use diesel::{pg::PgConnection, Connection, RunQueryDsl, SelectableHelper};
 use dotenvy::dotenv;
-use models::{NewPost, Post};
-use crate::media::Media;
-use crate::model::{NewSerial, Serial};
+use models::media::Media;
+use models::episodes::{NewSerial, Serial};
 use crate::schema::serials;
 
 pub fn establish_connection() -> PgConnection {
