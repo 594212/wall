@@ -1,6 +1,6 @@
 
 [package]
-name = "rails-db"
+name = "db"
 version = "0.1.0"
 edition = "2021"
 

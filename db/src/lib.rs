@@ -59,8 +59,8 @@ pub fn create_media(
         .expect("Error saving media")
 }
 
-pub fn inner_join(conn: &mut PgConnection, model_id: i64, model_type: ModelType) {
-    use crate::schema::medias;
-    use crate::schema::serials;
-    serials.inner_join(medias.on(model_id));
-}
+// pub fn inner_join(conn: &mut PgConnection, model_id: i64, model_type: ModelType) {
+//     use crate::schema::medias;
+//     use crate::schema::serials;
+//     serials.inner_join(medias.on(model_id));
+// }
