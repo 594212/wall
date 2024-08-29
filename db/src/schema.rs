@@ -6,6 +6,10 @@ pub mod sql_types {
     pub struct CategoryType;
 
     #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "collection_type"))]
+    pub struct CollectionType;
+
+    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "comment_type"))]
     pub struct CommentType;
 
@@ -74,12 +78,14 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::ModelType;
+    use super::sql_types::CollectionType;
 
     medias (id) {
         id -> Int4,
         uuid -> Uuid,
         model_id -> Int8,
         model_type -> ModelType,
+        collection_type -> CollectionType,
         file_name -> Varchar,
         mime_type -> Varchar,
         conversion -> Text,

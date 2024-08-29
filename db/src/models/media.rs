@@ -1,10 +1,10 @@
 use chrono::NaiveDateTime;
+use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
 use diesel::prelude::*;
-use std::io::Write;
-use diesel::deserialize::FromSql;
-use diesel::{AsExpression, FromSqlRow};
 use diesel::serialize::{IsNull, Output, ToSql};
+use diesel::{AsExpression, FromSqlRow};
+use std::io::Write;
 use uuid::Uuid;
 
 #[derive(Queryable, Selectable, Identifiable, Debug, PartialEq)]
@@ -15,6 +15,7 @@ pub struct Media {
     pub uuid: Uuid,
     pub model_id: i64,
     pub model_type: ModelType,
+    pub collection_type: CollectionType,
     pub file_name: String,
     pub mime_type: String,
     pub conversion: String,
@@ -30,6 +31,7 @@ pub struct NewMedia<'a> {
     pub uuid: Uuid,
     pub model_id: i64,
     pub model_type: ModelType,
+    pub collection_type: CollectionType,
     pub file_name: &'a str,
     pub mime_type: &'a str,
     pub conversion: &'a str,
@@ -44,13 +46,40 @@ pub enum ModelType {
     Comment,
 }
 
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
+#[diesel(sql_type = crate::schema::sql_types::CollectionType)]
+pub enum CollectionType {
+    Video,
+    Avatar,
+}
+
+impl FromSql<crate::schema::sql_types::CollectionType, Pg> for CollectionType {
+    fn from_sql(bytes: PgValue<'_>) -> diesel::deserialize::Result<Self> {
+        match bytes.as_bytes() {
+            b"avatar" => Ok(CollectionType::Avatar),
+            b"video" => Ok(CollectionType::Video),
+            _ => Err("Unrecognized enum variant".into()),
+        }
+    }
+}
+
+impl ToSql<crate::schema::sql_types::CollectionType, Pg> for CollectionType {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> diesel::serialize::Result {
+        match *self {
+            CollectionType::Video => out.write_all(b"video")?,
+            CollectionType::Avatar => out.write_all(b"avatar")?,
+        };
+        Ok(IsNull::No)
+    }
+}
+
 impl FromSql<crate::schema::sql_types::ModelType, Pg> for ModelType {
     fn from_sql(bytes: PgValue<'_>) -> diesel::deserialize::Result<Self> {
         match bytes.as_bytes() {
             b"serial" => Ok(ModelType::Serial),
             b"episode" => Ok(ModelType::Episode),
             b"comment" => Ok(ModelType::Comment),
-            _ => Err("Unrecognized enum variant".into())
+            _ => Err("Unrecognized enum variant".into()),
         }
     }
 }
@@ -65,4 +94,3 @@ impl ToSql<crate::schema::sql_types::ModelType, Pg> for ModelType {
         Ok(IsNull::No)
     }
 }
-

@@ -4,10 +4,11 @@ pub mod schema;
 
 use std::env;
 
-use crate::models::media::{ModelType, NewMedia};
+use crate::models::episodes;
+use crate::models::media;
+use diesel::QueryDsl;
 use diesel::{pg::PgConnection, Connection, RunQueryDsl, SelectableHelper};
 use dotenvy::dotenv;
-use models::episodes::{NewSerial, Serial};
 use models::media::Media;
 use uuid::Uuid;
 
@@ -19,7 +20,12 @@ pub fn establish_connection() -> PgConnection {
         .unwrap_or_else(|_| panic!("Error connection to {}", database_url))
 }
 
-pub fn create_serial(conn: &mut PgConnection, title: &str, description: &str) -> Serial {
+pub fn create_serial(
+    conn: &mut PgConnection,
+    title: &str,
+    description: &str,
+) -> Result<crate::episodes::Serial, diesel::result::Error> {
+    use crate::episodes::{NewSerial, Serial};
     use crate::schema::serials;
 
     let serial = NewSerial { title, description };
@@ -28,24 +34,25 @@ pub fn create_serial(conn: &mut PgConnection, title: &str, description: &str) ->
         .values(&serial)
         .returning(Serial::as_returning())
         .get_result(conn)
-        .expect("Error saving media")
 }
 
 pub fn create_media(
     conn: &mut PgConnection,
     uuid: Uuid,
     model_id: i64,
-    model_type: ModelType,
+    model_type: crate::media::ModelType,
+    collection_type: crate::media::CollectionType,
     file_name: &str,
     mime_type: &str,
     conversion: &str,
     size: i64,
-) -> Media {
+) -> Result<crate::media::Media, diesel::result::Error> {
     use crate::schema::medias;
-    let new_media = NewMedia {
+    let new_media = crate::media::NewMedia {
         uuid,
         model_id,
         model_type,
+        collection_type,
         file_name,
         mime_type,
         conversion,
@@ -56,11 +63,20 @@ pub fn create_media(
         .values(&new_media)
         .returning(Media::as_returning())
         .get_result(conn)
-        .expect("Error saving media")
 }
 
-// pub fn inner_join(conn: &mut PgConnection, model_id: i64, model_type: ModelType) {
-//     use crate::schema::medias;
-//     use crate::schema::serials;
-//     serials.inner_join(medias.on(model_id));
-// }
+pub fn paging_serials(
+    page_size: i64,
+    offset: i64,
+    conn: &mut PgConnection,
+) -> Result<Vec<crate::episodes::Serial>, diesel::result::Error> {
+    use crate::episodes::Serial;
+    use crate::schema::serials;
+    serials::table
+        .select(Serial::as_returning())
+        .limit(page_size)
+        .offset(offset)
+        .load(conn)
+}
+
+pub fn media() {}

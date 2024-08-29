@@ -10,4 +10,4 @@ CREATE TABLE comments (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX ind_model_type on medias (model_id, model_type);
+CREATE INDEX ind_comment_type on comments (model_id, model_type);
