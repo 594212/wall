@@ -83,7 +83,7 @@ diesel::table! {
     medias (id) {
         id -> Int4,
         uuid -> Uuid,
-        model_id -> Int8,
+        model_id -> Int4,
         model_type -> ModelType,
         collection_type -> CollectionType,
         file_name -> Varchar,

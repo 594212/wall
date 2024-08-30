@@ -4,12 +4,13 @@ pub mod schema;
 
 use std::env;
 
-use crate::models::episodes;
-use crate::models::media;
+use crate::models::episodes::*;
+use crate::models::media::*;
+use diesel::prelude::*;
+use diesel::result::Error;
 use diesel::QueryDsl;
-use diesel::{pg::PgConnection, Connection, RunQueryDsl, SelectableHelper};
+use diesel::{pg::PgConnection, Connection};
 use dotenvy::dotenv;
-use models::media::Media;
 use uuid::Uuid;
 
 pub fn establish_connection() -> PgConnection {
@@ -24,8 +25,7 @@ pub fn create_serial(
     conn: &mut PgConnection,
     title: &str,
     description: &str,
-) -> Result<crate::episodes::Serial, diesel::result::Error> {
-    use crate::episodes::{NewSerial, Serial};
+) -> Result<Serial, Error> {
     use crate::schema::serials;
 
     let serial = NewSerial { title, description };
@@ -39,16 +39,16 @@ pub fn create_serial(
 pub fn create_media(
     conn: &mut PgConnection,
     uuid: Uuid,
-    model_id: i64,
-    model_type: crate::media::ModelType,
-    collection_type: crate::media::CollectionType,
+    model_id: i32,
+    model_type: ModelType,
+    collection_type: CollectionType,
     file_name: &str,
     mime_type: &str,
     conversion: &str,
     size: i64,
-) -> Result<crate::media::Media, diesel::result::Error> {
+) -> Result<Media, Error> {
     use crate::schema::medias;
-    let new_media = crate::media::NewMedia {
+    let new_media = NewMedia {
         uuid,
         model_id,
         model_type,
@@ -69,8 +69,7 @@ pub fn paging_serials(
     page_size: i64,
     offset: i64,
     conn: &mut PgConnection,
-) -> Result<Vec<crate::episodes::Serial>, diesel::result::Error> {
-    use crate::episodes::Serial;
+) -> Result<Vec<Serial>, Error> {
     use crate::schema::serials;
     serials::table
         .select(Serial::as_returning())
@@ -79,4 +78,3 @@ pub fn paging_serials(
         .load(conn)
 }
 
-pub fn media() {}

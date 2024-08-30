@@ -5,7 +5,7 @@ CREATE TYPE collection_type as ENUM ('video', 'avatar');
 CREATE TABLE medias (
     id SERIAL PRIMARY KEY,
     uuid uuid NOT NULL DEFAULT gen_random_uuid(),
-    model_id  BIGINT NOT NULL,
+    model_id  INTEGER NOT NULL,
     model_type MODEL_TYPE NOT NULL ,
     collection_type COLLECTION_TYPE NOT NULL DEFAULT 'video',
     file_name VARCHAR NOT NULL,

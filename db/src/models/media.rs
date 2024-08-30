@@ -13,7 +13,7 @@ use uuid::Uuid;
 pub struct Media {
     pub id: i32,
     pub uuid: Uuid,
-    pub model_id: i64,
+    pub model_id: i32,
     pub model_type: ModelType,
     pub collection_type: CollectionType,
     pub file_name: String,
@@ -29,7 +29,7 @@ pub struct Media {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewMedia<'a> {
     pub uuid: Uuid,
-    pub model_id: i64,
+    pub model_id: i32,
     pub model_type: ModelType,
     pub collection_type: CollectionType,
     pub file_name: &'a str,
