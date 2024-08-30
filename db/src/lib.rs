@@ -78,3 +78,21 @@ pub fn paging_serials(
         .load(conn)
 }
 
+pub fn retrieve_medias(
+    model_ids: Vec<i32>,
+    model_type: ModelType,
+    collection_type: CollectionType,
+    conn: &mut PgConnection,
+) -> Result<Vec<Media>, Error> {
+    use crate::schema::medias;
+    medias::table
+        .select(Media::as_select())
+        .filter(
+            medias::model_id.eq_any(model_ids).and(
+                medias::model_type
+                    .eq(model_type)
+                    .and(medias::collection_type.eq(collection_type)),
+            ),
+        )
+        .load(conn)
+}
