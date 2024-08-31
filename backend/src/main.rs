@@ -1,13 +1,26 @@
-use actix_web::{post,get, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, guard, post, web, App, HttpResponse, HttpServer, Responder};
+use db::init_pool;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let pg_pool = init_pool();
+    HttpServer::new(move || {
         App::new()
-        .service(
-            web::scope("path").service(hello))
-        .service(echo)
-        .route("/hey", web::get().to(manual_hello))
+            .app_data(web::Data::new(pg_pool.clone()))
+            .service(web::scope("path").service(hello))
+            .service(echo)
+            .route("/hey", web::get().to(manual_hello))
+            .service(
+                web::scope("/")
+                    .guard(guard::Host("www.rust-land.org"))
+                    .route("", web::to(|| async { HttpResponse::Ok().body("www") })),
+            )
+            .service(
+                web::scope("/")
+                    .guard(guard::Host("www.rust-lang.org"))
+                    .route("", web::to(|| async { HttpResponse::Ok().body("www") })),
+            )
+            .route("/", web::to(HttpResponse::Ok))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
@@ -15,7 +28,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[get("/")]
-async  fn  hello()-> impl Responder {
+async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello World!")
 }
 

@@ -17,3 +17,6 @@ CREATE TABLE medias (
 );
 
 CREATE INDEX ind_media_type ON medias (model_id, model_type);
+
+INSERT INTO medias (model_id, model_type, collection_type, file_name, mime_type, conversion, size) VALUES
+(generate_series(1,1000), 'serial', 'avatar', 'file_' || trunc(random()*1000), 'png', '{}', trunc(random()*10000));

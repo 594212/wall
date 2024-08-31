@@ -7,3 +7,7 @@ CREATE TABLE serials (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+
+INSERT INTO serials (id, title, description) VALUES
+( generate_series(1,1000), 'AWESOME FILM ' || trunc(random()*1000), repeat('WOW ',10));
