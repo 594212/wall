@@ -7,6 +7,7 @@ use std::env;
 use crate::models::episodes::*;
 use crate::models::media::*;
 use diesel::prelude::*;
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use diesel::result::Error;
 use diesel::QueryDsl;
 use diesel::{pg::PgConnection, Connection};
@@ -14,6 +15,17 @@ use dotenvy::dotenv;
 use models::category::*;
 use uuid::Uuid;
 
+pub type PgPool = Pool<ConnectionManager<PgConnection>>;
+pub type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
+
+pub fn init_pool() -> PgPool {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    Pool::builder()
+        .build(manager)
+        .expect("Connection not build connection pool")
+}
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
 
