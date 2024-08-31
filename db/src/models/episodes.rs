@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
+use crate::HasMedia;
 
 #[derive(Queryable, Selectable, Identifiable, Debug, PartialEq)]
 #[diesel(table_name = crate::schema::serials)]
@@ -33,4 +34,10 @@ pub struct Episode {
     pub serial_id: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl HasMedia for Serial {
+    fn model_id(&self) -> i32 {
+        self.id
+    }
 }

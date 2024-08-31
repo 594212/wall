@@ -11,6 +11,7 @@ use diesel::result::Error;
 use diesel::QueryDsl;
 use diesel::{pg::PgConnection, Connection};
 use dotenvy::dotenv;
+use models::category::*;
 use uuid::Uuid;
 
 pub fn establish_connection() -> PgConnection {
@@ -79,13 +80,14 @@ pub fn paging_serials(
 }
 
 pub fn retrieve_medias(
-    model_ids: Vec<i32>,
+    serials: Vec<Serial>,
     model_type: ModelType,
     collection_type: CollectionType,
     conn: &mut PgConnection,
-) -> Result<Vec<Media>, Error> {
+) -> Result<Vec<(Serial, Vec<Media>)>, Error> {
     use crate::schema::medias;
-    medias::table
+    let model_ids: Vec<i32> = serials.iter().map(|s| s.model_id()).collect();
+    let medias: Vec<Media> = medias::table
         .select(Media::as_select())
         .filter(
             medias::model_id.eq_any(model_ids).and(
@@ -94,5 +96,34 @@ pub fn retrieve_medias(
                     .and(medias::collection_type.eq(collection_type)),
             ),
         )
-        .load(conn)
+        .load(conn)?;
+    let med = media2_chunk_by(medias, &serials);
+
+    Ok(serials.into_iter().zip(med).collect())
+}
+
+pub fn retrieve_categories(
+    serials: Vec<Serial>,
+    category_type: CategoryType,
+    conn: &mut PgConnection,
+) -> Result<Vec<(Serial, Vec<Category>)>, Error> {
+    use crate::schema::categories;
+
+    let categories = CategorySerial::belonging_to(&serials)
+        .inner_join(categories::table)
+        .filter(categories::category_type.eq(category_type))
+        .select((CategorySerial::as_select(), Category::as_select()))
+        .load(conn)?;
+
+    Ok(categories
+        .grouped_by(&serials)
+        .into_iter()
+        .zip(serials)
+        .map(|(c, serial)| {
+            (
+                serial,
+                c.into_iter().map(|(_, category)| category).collect(),
+            )
+        })
+        .collect())
 }

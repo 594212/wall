@@ -94,3 +94,47 @@ impl ToSql<crate::schema::sql_types::ModelType, Pg> for ModelType {
         Ok(IsNull::No)
     }
 }
+
+pub trait HasMedia {
+    fn model_id(&self) -> i32;
+}
+pub trait ChunkBy<'a, Parent>: IntoIterator {
+    fn media_chunk_by(self, parents: &'a [Parent]) -> Vec<Vec<Self::Item>>;
+}
+
+impl<'a, Owner: 'a> ChunkBy<'a, Owner> for Vec<Media>
+where
+    &'a Owner: HasMedia,
+{
+    fn media_chunk_by(self, parents: &'a [Owner]) -> Vec<Vec<Self::Item>> {
+        use std::collections::HashMap;
+
+        let id_indices: HashMap<_, _> = parents
+            .iter()
+            .enumerate()
+            .map(|(i, u)| (u.model_id(), i))
+            .collect();
+        let mut result = parents.iter().map(|_| Vec::new()).collect::<Vec<_>>();
+        for media in self {
+            let index = id_indices[&media.model_id];
+            result[index].push(media);
+        }
+        result
+    }
+}
+
+pub fn media2_chunk_by<'a, T: HasMedia>(childs: Vec<Media>, parents: &'a [T]) -> Vec<Vec<Media>> {
+    use std::collections::HashMap;
+
+    let id_indices: HashMap<_, _> = parents
+        .iter()
+        .enumerate()
+        .map(|(i, u)| (u.model_id(), i))
+        .collect();
+    let mut result = parents.iter().map(|_| Vec::new()).collect::<Vec<_>>();
+    for media in childs {
+        let index = id_indices[&media.model_id];
+        result[index].push(media);
+    }
+    result
+}
