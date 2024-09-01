@@ -1,6 +1,3 @@
 [workspace]
 
-members = [
-    "backend",
-    "db"
-, "scraper"]
+members = ["frontend", "backend", "db", "scraper"]

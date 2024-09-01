@@ -1,0 +1,5 @@
+[<table> serials|id|title||
+description|serial_count|rating]<-o
+[<table>serials_scrapers|serial_id|scraper_id]o->
+[<table>scraper|id|url]
+
