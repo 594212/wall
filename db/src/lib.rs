@@ -80,15 +80,15 @@ pub fn create_media(
 }
 
 pub fn paging_serials(
-    page_size: i64,
-    offset: i64,
+    limit: i64,
+    page: i64,
     conn: &mut PgConnection,
 ) -> Result<Vec<Serial>, Error> {
     use crate::schema::serials;
     serials::table
         .select(Serial::as_returning())
-        .limit(page_size)
-        .offset(offset)
+        .limit(limit)
+        .offset(page * limit)
         .load(conn)
 }
 
@@ -96,7 +96,7 @@ pub fn retrieve_medias<T: Morph>(
     morphs: Vec<T>,
     collection_type: CollectionType,
     conn: &mut PgConnection,
-) -> Result<Vec<(T, Vec<Media>)>, Error> {
+) -> Result<Vec<Vec<Media>>, Error> {
     use crate::schema::medias;
     let model_ids: Vec<i32> = morphs.iter().map(|s| s.model_id()).collect();
     let medias = medias::table
@@ -111,7 +111,7 @@ pub fn retrieve_medias<T: Morph>(
         .load(conn)?
         .chunk_by(&morphs);
 
-    Ok(morphs.into_iter().zip(medias).collect())
+    Ok(medias)
 }
 
 pub fn retrieve_categories(
@@ -125,7 +125,7 @@ pub fn retrieve_categories(
         .inner_join(categories::table)
         .filter(categories::category_type.eq(category_type))
         .select((CategorySerial::as_select(), Category::as_select()))
-        .load(conn)?;
+        .load(conn)?; // category_id category_id, ...
 
     Ok(categories
         .grouped_by(&serials)
