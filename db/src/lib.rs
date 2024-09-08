@@ -4,15 +4,14 @@ pub mod schema;
 
 use std::env;
 
-use crate::models::episodes::*;
-use crate::models::media::*;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
-use diesel::result::Error;
+pub use diesel::result::Error;
 use diesel::QueryDsl;
 use diesel::{pg::PgConnection, Connection};
 use dotenvy::dotenv;
-use models::category::*;
+use models::media::ChunkBy;
+pub use models::*;
 use uuid::Uuid;
 
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;
@@ -55,7 +54,7 @@ pub fn create_media(
     conn: &mut PgConnection,
     uuid: Uuid,
     model_id: i32,
-    model_type: ModelType,
+    model_type: MediaType,
     collection_type: CollectionType,
     file_name: &str,
     mime_type: &str,
@@ -93,27 +92,26 @@ pub fn paging_serials(
         .load(conn)
 }
 
-pub fn retrieve_medias(
-    serials: Vec<Serial>,
-    model_type: ModelType,
+pub fn retrieve_medias<T: Morph>(
+    morphs: Vec<T>,
     collection_type: CollectionType,
     conn: &mut PgConnection,
-) -> Result<Vec<(Serial, Vec<Media>)>, Error> {
+) -> Result<Vec<(T, Vec<Media>)>, Error> {
     use crate::schema::medias;
-    let model_ids: Vec<i32> = serials.iter().map(|s| s.model_id()).collect();
-    let medias: Vec<Media> = medias::table
+    let model_ids: Vec<i32> = morphs.iter().map(|s| s.model_id()).collect();
+    let medias = medias::table
         .select(Media::as_select())
         .filter(
             medias::model_id.eq_any(model_ids).and(
                 medias::model_type
-                    .eq(model_type)
+                    .eq(T::media_type())
                     .and(medias::collection_type.eq(collection_type)),
             ),
         )
-        .load(conn)?;
-    let med = media2_chunk_by(medias, &serials);
+        .load(conn)?
+        .chunk_by(&morphs);
 
-    Ok(serials.into_iter().zip(med).collect())
+    Ok(morphs.into_iter().zip(medias).collect())
 }
 
 pub fn retrieve_categories(

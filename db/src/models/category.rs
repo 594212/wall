@@ -1,11 +1,11 @@
-use crate::models::episodes::Serial;
+use super::Serial;
 use chrono::NaiveDateTime;
 use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
-use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::prelude::*;
-use std::io::Write;
+use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
+use std::io::Write;
 
 #[derive(Identifiable, Selectable, Queryable, Debug)]
 #[diesel(table_name=crate::schema::categories)]
@@ -46,7 +46,7 @@ impl ToSql<crate::schema::sql_types::CategoryType, Pg> for CategoryType {
             CategoryType::Genre => out.write_all(b"genre")?,
             CategoryType::Author => out.write_all(b"author")?,
             CategoryType::Year => out.write_all(b"year")?,
-            CategoryType::Status => out.write_all(b"status")?
+            CategoryType::Status => out.write_all(b"status")?,
         }
         Ok(IsNull::No)
     }
@@ -60,8 +60,7 @@ impl FromSql<crate::schema::sql_types::CategoryType, Pg> for CategoryType {
             b"author" => Ok(CategoryType::Author),
             b"year" => Ok(CategoryType::Year),
             b"status" => Ok(CategoryType::Status),
-            _ => Err("Unrecognized enum variant".into())
+            _ => Err("Unrecognized enum variant".into()),
         }
     }
 }
-

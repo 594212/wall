@@ -1,9 +1,10 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde::Serialize;
 
-use crate::HasMedia;
+use super::{CommentType, MediaType, Morph};
 
-#[derive(Queryable, Selectable, Identifiable, Debug, PartialEq)]
+#[derive(Queryable, Selectable, Identifiable, Debug, PartialEq, Serialize)]
 #[diesel(table_name = crate::schema::serials)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Serial {
@@ -36,8 +37,29 @@ pub struct Episode {
     pub updated_at: NaiveDateTime,
 }
 
-impl HasMedia for Serial {
+impl Morph for Serial {
     fn model_id(&self) -> i32 {
         self.id
+    }
+
+    fn media_type() -> MediaType {
+        MediaType::Serial
+    }
+
+    fn coomment_type() -> CommentType {
+        CommentType::Serial
+    }
+}
+impl Morph for Episode {
+    fn model_id(&self) -> i32 {
+        self.id
+    }
+
+    fn media_type() -> MediaType {
+        MediaType::Episode
+    }
+
+    fn coomment_type() -> CommentType {
+        CommentType::Episode
     }
 }

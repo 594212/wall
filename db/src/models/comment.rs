@@ -1,10 +1,12 @@
 use chrono::NaiveDateTime;
 use diesel::deserialize::FromSql;
 use diesel::pg::{Pg, PgValue};
-use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::prelude::*;
-use std::io::Write;
+use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
+use std::io::Write;
+
+use super::{MediaType, Morph};
 
 #[derive(Identifiable, Selectable, Queryable, Debug)]
 #[diesel(table_name=crate::schema::comments)]
@@ -44,7 +46,21 @@ impl FromSql<crate::schema::sql_types::CommentType, Pg> for CommentType {
             b"serial" => Ok(CommentType::Serial),
             b"episode" => Ok(CommentType::Episode),
             b"child" => Ok(CommentType::Comment),
-            _ => Err("Unrecognized enum variant".into())
+            _ => Err("Unrecognized enum variant".into()),
         }
+    }
+}
+
+impl Morph for Comment {
+    fn model_id(&self) -> i32 {
+        self.id
+    }
+
+    fn media_type() -> MediaType {
+        MediaType::Comment
+    }
+
+    fn coomment_type() -> CommentType {
+        CommentType::Comment
     }
 }

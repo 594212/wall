@@ -1,6 +1,6 @@
-use crate::models::episodes::Episode;
-use crate::models::episodes::Serial;
-use crate::models::user::User;
+use super::Episode;
+use super::Serial;
+use super::User;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
