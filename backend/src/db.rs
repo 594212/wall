@@ -1,18 +1,13 @@
-mod error;
-pub mod models;
-mod repository;
-pub mod schema;
-
 use std::env;
 
+use crate::models::media::ChunkBy;
+use crate::models::*;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
+use diesel::result::Error;
 use diesel::QueryDsl;
 use diesel::{pg::PgConnection, Connection};
 use dotenvy::dotenv;
-pub use error::DbError;
-use models::media::ChunkBy;
-pub use models::*;
 use uuid::Uuid;
 
 pub type PgPool = Pool<ConnectionManager<PgConnection>>;
@@ -40,7 +35,7 @@ pub fn create_serial(
     conn: &mut PgConnection,
     title: &str,
     description: &str,
-) -> Result<Serial, DbError> {
+) -> Result<Serial, Error> {
     use crate::schema::serials;
 
     let serial = NewSerial { title, description };
@@ -62,7 +57,7 @@ pub fn create_media(
     mime_type: &str,
     conversion: &str,
     size: i64,
-) -> Result<Media, DbError> {
+) -> Result<Media, Error> {
     use crate::schema::medias;
     let new_media = NewMedia {
         uuid,
@@ -86,7 +81,7 @@ pub fn paging_serials(
     limit: i64,
     page: i64,
     conn: &mut PgConnection,
-) -> Result<Vec<Serial>, DbError> {
+) -> Result<Vec<Serial>, Error> {
     use crate::schema::serials;
     let serials: Vec<Serial> = serials::table
         .select(Serial::as_returning())
@@ -101,7 +96,7 @@ pub fn retrieve_medias<T: Morph>(
     morphs: Vec<T>,
     collection_type: CollectionType,
     conn: &mut PgConnection,
-) -> Result<Vec<Vec<Media>>, DbError> {
+) -> Result<Vec<Vec<Media>>, Error> {
     use crate::schema::medias;
     let model_ids: Vec<i32> = morphs.iter().map(|s| s.model_id()).collect();
     let medias = medias::table
@@ -123,7 +118,7 @@ pub fn retrieve_categories(
     serials: Vec<Serial>,
     category_type: CategoryType,
     conn: &mut PgConnection,
-) -> Result<Vec<(Serial, Vec<Category>)>, DbError> {
+) -> Result<Vec<(Serial, Vec<Category>)>, Error> {
     use crate::schema::categories;
 
     let categories = CategorySerial::belonging_to(&serials)

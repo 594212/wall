@@ -1,11 +1,13 @@
+mod apps;
+mod db;
 mod error;
-
+mod models;
+mod schema;
 use actix_web::{
     get, guard, middleware::Logger, post, web, App, HttpResponse, HttpServer, Responder,
-    ResponseError,
 };
-use db::{init_pool, Media, PgPool, Serial};
-use serde::{Deserialize, Serialize};
+use apps::catalog::catalog;
+use db::init_pool;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -51,36 +53,4 @@ async fn echo(req_body: String) -> impl Responder {
 
 async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
-}
-
-#[get("/catalog")]
-async fn catalog(page: web::Query<Page>, pool: web::Data<PgPool>) -> impl Responder {
-    let conn = &mut pool
-        .get()
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e))?;
-
-    db::paging_serials(page.limit, page.page, conn)
-        .and_then(|serials| db::retrieve_medias(serials, db::CollectionType::Avatar, conn))
-        .map(|medias| HttpResponse::Ok().json(medias))
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e))
-}
-
-#[derive(Deserialize, Serialize)]
-struct Page {
-    limit: i64,
-    page: i64,
-}
-
-struct Catalog {
-    id: i32,
-    name: String,
-    categories: Vec<db::Category>,
-    avatar: db::Media,
-}
-
-struct CatalogResponse {
-    data: Vec<Catalog>,
-    page: i32,
-    limit: i32,
-    coumt: i32,
 }

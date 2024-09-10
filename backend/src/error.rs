@@ -1,13 +1,12 @@
-use std::borrow::BorrowMut;
-
-use actix_web::body::MessageBody;
-use actix_web::error::ResponseError;
-use actix_web::http::StatusCode;
-use actix_web::HttpMessage;
-use actix_web::HttpResponse;
-use actix_web::HttpResponseBuilder;
-use serde_json::Map as JsonMap;
-use serde_json::Value as JsonValue;
+use actix_web::{HttpResponse, ResponseError};
+use diesel::{
+    r2d2::PoolError,
+    result::{
+        DatabaseErrorKind,
+        Error::{self as DieselError},
+    },
+};
+use serde_json::{json, Value as JsonValue};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -37,5 +36,29 @@ impl ResponseError for Error {
                 HttpResponse::InternalServerError().json("Internal Server Error")
             }
         }
+    }
+}
+
+impl From<DieselError> for Error {
+    fn from(error: DieselError) -> Self {
+        match error {
+            DieselError::DatabaseError(kind, info) => {
+                if let DatabaseErrorKind::UniqueViolation = kind {
+                    let message = info.details().unwrap_or_else(|| info.message()).to_string();
+                    return Error::UnprocessobalEntity(json!({"error" : message}));
+                }
+                Error::InternalServerError
+            }
+            DieselError::NotFound => {
+                Error::NotFound(json!({"error" : "request record was not found"}))
+            }
+            _ => Error::InternalServerError,
+        }
+    }
+}
+
+impl From<PoolError> for Error {
+    fn from(_: PoolError) -> Self {
+        Error::InternalServerError
     }
 }
