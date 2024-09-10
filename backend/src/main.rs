@@ -1,5 +1,8 @@
+mod error;
+
 use actix_web::{
     get, guard, middleware::Logger, post, web, App, HttpResponse, HttpServer, Responder,
+    ResponseError,
 };
 use db::{init_pool, Media, PgPool, Serial};
 use serde::{Deserialize, Serialize};
