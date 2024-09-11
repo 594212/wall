@@ -14,7 +14,7 @@ struct Page {
 struct SerialResponseInner {
     id: i32,
     title: String,
-    avatar: Media,
+    avatar: String,
     tags: Vec<CategoryResponse>,
     genres: Vec<CategoryResponse>,
     authors: Vec<CategoryResponse>,
@@ -53,24 +53,29 @@ pub async fn catalog(
     let conn = &mut pool.get().await?;
 
     let serials = paging_serials(page.limit, page.page, conn).await?;
-    let mut medias = retrieve_medias(&serials, CollectionType::Avatar, conn).await?;
-    let categories = retrieve_categories(&serials, 20, 0, conn).await?;
+    let medias = retrieve_medias(&serials, CollectionType::Avatar, conn).await?;
+    let tags = retrieve_category(20, 0, &serials, CategoryType::Tag, conn).await?;
+    let genres = retrieve_category(20, 0, &serials, CategoryType::Genre, conn).await?;
+    let authors = retrieve_category(20, 0, &serials, CategoryType::Author, conn).await?;
+    let years = retrieve_category(20, 0, &serials, CategoryType::Year, conn).await?;
+    let statuses = retrieve_category(20, 0, &serials, CategoryType::Status, conn).await?;
     let count = count_serials(conn).await?;
 
-    let data = itertools::izip!(serials, &mut medias, categories)
-        .map(|(s, m, c)| {
-            let tuple_categories = categories_grouped_by(c);
-            SerialResponseInner {
-                id: s.id,
-                title: s.title,
-                avatar: m.remove(0),
-                tags: tuple_categories.0,
-                genres: tuple_categories.1,
-                authors: tuple_categories.2,
-                years: tuple_categories.3,
-                statuses: tuple_categories.4,
-            }
-        })
+    let data = itertools::izip!(serials, medias, tags, genres, years, authors, statuses)
+        .map(
+            |(serial, media, tags, genres, authors, years, statuses)| SerialResponseInner {
+                id: serial.id,
+                title: serial.title,
+                avatar: media
+                    .first()
+                    .map_or_else(|| Media::get_default(), |m| m.to_path()),
+                tags: tags.map(|c| c.into()).collect(),
+                genres: genres.map(|c| c.into()).collect(),
+                authors: authors.map(|c| c.into()).collect(),
+                years: years.map(|c| c.into()).collect(),
+                statuses: statuses.map(|c| c.into()).collect(),
+            },
+        )
         .collect();
 
     Ok(HttpResponse::Ok().json(SerialResponse {
@@ -79,26 +84,4 @@ pub async fn catalog(
         limit: page.limit,
         count,
     }))
-}
-
-fn categories_grouped_by(
-    categories: Vec<Category>,
-) -> (
-    Vec<CategoryResponse>,
-    Vec<CategoryResponse>,
-    Vec<CategoryResponse>,
-    Vec<CategoryResponse>,
-    Vec<CategoryResponse>,
-) {
-    let mut tuple_categories = (Vec::new(), Vec::new(), Vec::new(), Vec::new(), Vec::new());
-    for c in categories.into_iter() {
-        match c.category_type {
-            CategoryType::Tag => tuple_categories.0.push(c.into()),
-            CategoryType::Genre => tuple_categories.1.push(c.into()),
-            CategoryType::Author => tuple_categories.2.push(c.into()),
-            CategoryType::Year => tuple_categories.3.push(c.into()),
-            CategoryType::Status => tuple_categories.4.push(c.into()),
-        }
-    }
-    tuple_categories
 }

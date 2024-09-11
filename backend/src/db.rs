@@ -142,7 +142,7 @@ pub async fn retrieve_category(
     serials: &Vec<Serial>,
     category_type: CategoryType,
     conn: &mut Connection,
-) -> Result<Vec<Vec<Category>>, Error> {
+) -> Result<Vec<impl Iterator<Item = Category>>, Error> {
     use crate::schema::categories;
 
     let categories = CategorySerial::belonging_to(serials)
@@ -157,6 +157,6 @@ pub async fn retrieve_category(
     Ok(categories
         .grouped_by(serials)
         .into_iter()
-        .map(|c| c.into_iter().map(|(_, category)| category).collect())
+        .map(|c| c.into_iter().map(|(_, category)| category))
         .collect())
 }

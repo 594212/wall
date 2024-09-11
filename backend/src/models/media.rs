@@ -5,6 +5,7 @@ use diesel::prelude::*;
 use diesel::serialize::{IsNull, Output, ToSql};
 use diesel::{AsExpression, FromSqlRow};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 use std::io::Write;
 use uuid::Uuid;
 
@@ -26,6 +27,15 @@ pub struct Media {
     pub size: i64,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+}
+
+impl Media {
+    pub fn get_default() -> String {
+        String::from("assert/default/avatar.png")
+    }
+    pub fn to_path(&self) -> String {
+        format!("assets/{}/{}", self.uuid, self.file_name)
+    }
 }
 
 #[derive(Insertable, Debug, PartialEq)]
