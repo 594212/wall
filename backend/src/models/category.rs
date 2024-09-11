@@ -30,7 +30,7 @@ pub struct CategorySerial {
     pub serial_id: i32,
 }
 
-#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq)]
+#[derive(Debug, PartialEq, FromSqlRow, AsExpression, Eq, Hash)]
 #[diesel(sql_type=crate::schema::sql_types::CategoryType)]
 pub enum CategoryType {
     Tag,

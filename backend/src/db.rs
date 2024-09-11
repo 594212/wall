@@ -2,37 +2,30 @@ use std::env;
 
 use crate::models::media::ChunkBy;
 use crate::models::*;
+use diesel::dsl::count;
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 use diesel::result::Error;
 use diesel::QueryDsl;
-use diesel::{pg::PgConnection, Connection};
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use dotenvy::dotenv;
 use uuid::Uuid;
 
-pub type PgPool = Pool<ConnectionManager<PgConnection>>;
-pub type PgPooledConnection = PooledConnection<ConnectionManager<PgConnection>>;
-pub type Conn = PgConnection;
+pub type Connection = AsyncPgConnection;
+pub type PgPool = Pool<Connection>;
 
 pub fn init_pool() -> PgPool {
     dotenv().ok();
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    Pool::builder()
-        .build(manager)
+    let mg = AsyncDieselConnectionManager::<diesel_async::AsyncPgConnection>::new(database_url);
+    Pool::builder(mg)
+        .build()
         .expect("Connection not build connection pool")
 }
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connection to {}", database_url))
-}
-
-pub fn create_serial(
-    conn: &mut PgConnection,
+pub async fn create_serial(
+    conn: &mut Connection,
     title: &str,
     description: &str,
 ) -> Result<Serial, Error> {
@@ -43,12 +36,13 @@ pub fn create_serial(
     let media = diesel::insert_into(serials::table)
         .values(&serial)
         .returning(Serial::as_returning())
-        .get_result(conn)?;
+        .get_result(conn)
+        .await?;
     Ok(media)
 }
 
-pub fn create_media(
-    conn: &mut PgConnection,
+pub async fn create_media(
+    conn: &mut Connection,
     uuid: Uuid,
     model_id: i32,
     model_type: MediaType,
@@ -73,29 +67,35 @@ pub fn create_media(
     let media = diesel::insert_into(medias::table)
         .values(&new_media)
         .returning(Media::as_returning())
-        .get_result(conn)?;
+        .get_result(conn)
+        .await?;
     Ok(media)
 }
 
-pub fn paging_serials(
+pub async fn count_serials(conn: &mut Connection) -> Result<i64, Error> {
+    use crate::schema::serials;
+    serials::table.count().get_result(conn).await
+}
+pub async fn paging_serials(
     limit: i64,
     page: i64,
-    conn: &mut PgConnection,
+    conn: &mut Connection,
 ) -> Result<Vec<Serial>, Error> {
     use crate::schema::serials;
     let serials: Vec<Serial> = serials::table
         .select(Serial::as_returning())
         .limit(limit)
         .offset(page * limit)
-        .load(conn)?;
+        .load(conn)
+        .await?;
 
     Ok(serials)
 }
 
-pub fn retrieve_medias<T: Morph>(
-    morphs: Vec<T>,
+pub async fn retrieve_medias<T: Morph>(
+    morphs: &Vec<T>,
     collection_type: CollectionType,
-    conn: &mut PgConnection,
+    conn: &mut Connection,
 ) -> Result<Vec<Vec<Media>>, Error> {
     use crate::schema::medias;
     let model_ids: Vec<i32> = morphs.iter().map(|s| s.model_id()).collect();
@@ -108,34 +108,32 @@ pub fn retrieve_medias<T: Morph>(
                     .and(medias::collection_type.eq(collection_type)),
             ),
         )
-        .load(conn)?
-        .chunk_by(&morphs);
+        .load(conn)
+        .await?
+        .chunk_by(morphs);
 
     Ok(medias)
 }
 
-pub fn retrieve_categories(
-    serials: Vec<Serial>,
-    category_type: CategoryType,
-    conn: &mut PgConnection,
-) -> Result<Vec<(Serial, Vec<Category>)>, Error> {
+pub async fn retrieve_categories(
+    serials: &Vec<Serial>,
+    limit: i64,
+    offset: i64,
+    conn: &mut Connection,
+) -> Result<Vec<Vec<Category>>, Error> {
     use crate::schema::categories;
 
-    let categories = CategorySerial::belonging_to(&serials)
+    let categories = CategorySerial::belonging_to(serials)
         .inner_join(categories::table)
-        .filter(categories::category_type.eq(category_type))
+        .limit(limit)
+        .offset(offset)
         .select((CategorySerial::as_select(), Category::as_select()))
-        .load(conn)?; // category_id category_id, ...
+        .load(conn)
+        .await?; // category_id category_id, ...
 
     Ok(categories
-        .grouped_by(&serials)
+        .grouped_by(serials)
         .into_iter()
-        .zip(serials)
-        .map(|(c, serial)| {
-            (
-                serial,
-                c.into_iter().map(|(_, category)| category).collect(),
-            )
-        })
+        .map(|c| c.into_iter().map(|(_, category)| category).collect())
         .collect())
 }

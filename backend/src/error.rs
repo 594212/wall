@@ -1,11 +1,9 @@
 use actix_web::{HttpResponse, ResponseError};
-use diesel::{
-    r2d2::PoolError,
-    result::{
-        DatabaseErrorKind,
-        Error::{self as DieselError},
-    },
+use diesel::result::{
+    DatabaseErrorKind,
+    Error::{self as DieselError},
 };
+use diesel_async::pooled_connection::deadpool::PoolError;
 use serde_json::{json, Value as JsonValue};
 use thiserror::Error;
 
