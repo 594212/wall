@@ -27,5 +27,5 @@ async fn main() -> std::io::Result<()> {
 }
 
 fn routes(app: &mut web::ServiceConfig) {
-    app.service(catalog).service(error).service(tuple);
+    app.service(catalog);
 }

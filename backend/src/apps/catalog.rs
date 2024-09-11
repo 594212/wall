@@ -1,13 +1,6 @@
-use std::{
-    collections::{linked_list, HashMap},
-    ops::RemAssign,
-};
-
 use crate::error::Error;
-use actix_web::{get, web, HttpResponse, Responder};
-use diesel_async::pooled_connection::PoolError;
+use actix_web::{get, web, HttpResponse};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 use crate::{db::*, models::*};
 
@@ -64,9 +57,9 @@ pub async fn catalog(
     let categories = retrieve_categories(&serials, 20, 0, conn).await?;
     let count = count_serials(conn).await?;
 
-    let inner = itertools::izip!(serials, &mut medias, categories)
+    let data = itertools::izip!(serials, &mut medias, categories)
         .map(|(s, m, c)| {
-            let tuple_categories = category_grouped_by(c);
+            let tuple_categories = categories_grouped_by(c);
             SerialResponseInner {
                 id: s.id,
                 title: s.title,
@@ -81,14 +74,14 @@ pub async fn catalog(
         .collect();
 
     Ok(HttpResponse::Ok().json(SerialResponse {
-        data: inner,
+        data,
         page: page.page,
         limit: page.limit,
-        count: count,
+        count,
     }))
 }
 
-fn category_grouped_by(
+fn categories_grouped_by(
     categories: Vec<Category>,
 ) -> (
     Vec<CategoryResponse>,
@@ -108,33 +101,4 @@ fn category_grouped_by(
         }
     }
     tuple_categories
-}
-
-#[get("/")]
-pub async fn error() -> impl Responder {
-    let error = Error::NotFound(json!({"error": "record not found"}));
-    Err(error)?;
-    Ok::<_, Error>(HttpResponse::Ok().body("error"))
-}
-
-#[get("/tuple")]
-pub async fn tuple() -> impl Responder {
-    let tuple = TupleStruct(
-        34,
-        InnerStruct {
-            first: vec!["struct".to_string(), "something".to_string()],
-        },
-    );
-    HttpResponse::Ok().json(OuterStruct { outer: tuple })
-}
-
-#[derive(Serialize)]
-struct OuterStruct {
-    outer: TupleStruct,
-}
-#[derive(Serialize)]
-struct TupleStruct(i64, InnerStruct);
-#[derive(Serialize)]
-struct InnerStruct {
-    first: Vec<String>,
 }
