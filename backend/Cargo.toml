@@ -19,6 +19,12 @@ uuid = "1.10.0"
 diesel-async = { version = "0.5.0", features = ["deadpool", "postgres"] }
 itertools = "0.13.0"
 
+#scraper
+error-chain = "0.12.4"
+reqwest = "0.12.7"
+select = "0.6.0"
+tokio = { version = "1.40.0", features = ["full"] }
+
 
 [dev-dependencies]
 criterion = "0.5.1"
